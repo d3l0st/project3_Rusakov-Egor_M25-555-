@@ -175,24 +175,30 @@ class Portfolio:
     def get_total_value(self, base_currency: str = 'USD'):
         exchange_rates = {
             'USD' : 1.0,
-            'EUR' : 0.92,
+            'EUR' : 1.08,
             'BTC' : 45000.0,
             'ETH' : 2500.0,
             'RUB' : 0.011
         }
 
-        total_value = 0.0
+        base_currency = base_currency.upper()
+        if base_currency not in exchange_rates:
+            raise ValueError(f"Неизвестная валюта: {base_currency}")
+        
+        total_value_usd = 0.0
         for currency_code, wallet in self._wallets.items():
-            if currency_code == base_currency:
-                total_value += wallet.balance
+            if currency_code in exchange_rates:
+                value_in_usd = wallet.balance * exchange_rates[currency_code]
+                total_value_usd += value_in_usd
             else:
-                if currency_code in exchange_rates and base_currency in exchange_rates:
-                    value_in_usd = wallet.balance * exchange_rates[currency_code]
-                    value_in_base = value_in_usd / exchange_rates[base_currency]
-                    total_value += value_in_base
-                else:
-                    continue    
-        return round(total_value, 2)
+                continue
+        
+        if base_currency == 'USD':
+            return round(total_value_usd, 2)
+        else:
+            value_in_base = total_value_usd / exchange_rates[base_currency]
+            return round(value_in_base, 2)
+    
     
     def get_wallet(self, currency_code: str):
         if currency_code not in self._wallets:
