@@ -1,6 +1,6 @@
 import hashlib
-import uuid
 from datetime import datetime
+
 
 class User:
     '''
@@ -9,6 +9,10 @@ class User:
     hashed_password: str — пароль в зашифрованном виде.
     salt: str — уникальная соль для пользователя.
     registration_date: datetime — дата регистрации пользователя.
+    Методы класса:
+    get_user_info() — выводит информацию о пользователе (без пароля).
+    change_password(new_password: str) — изменяет пароль пользователя, с хешированием нового пароля.
+    verify_password(password: str) — проверяет введённый пароль на совпадение.
     '''
     
     def __init__(
@@ -87,6 +91,10 @@ class Wallet:
     '''
     currency_code: str — код валюты (например, "USD", "BTC").
     _balance: float — баланс в данной валюте (по умолчанию 0.0).
+    Методы класса:
+    deposit(amount: float) — пополнение баланса.
+    withdraw(amount: float) — снятие средств (если баланс позволяет).
+    get_balance_info() — вывод информации о текущем балансе.  
     '''
 
     def __init__(
@@ -120,7 +128,7 @@ class Wallet:
         self.balance += amount
     
     def withdraw(self, amount: float):
-        if not isinstance(amountm, (int, float)):
+        if not isinstance(amount, (int, float)):
             raise TypeError('Сумма для снятия должна быть числом')
         if amount <= 0:
             raise ValueError('Сумма для сняти не может быть отрицательной')
@@ -129,10 +137,71 @@ class Wallet:
         
         self.balance -= amount
     
-    def get_balance(self):
+    def get_balance_info(self):
         return {
             "currency_code": self.currency_code,
             "balance": self._balance
         }
         
+class Portfolio:
+    '''
+    _user_id: int — уникальный идентификатор пользователя.
+    _wallets: dict[str, Wallet] — словарь кошельков, где ключ — код валюты, значение — объект Wallet.
+    Методы класса:
+    add_currency(currency_code: str) — добавляет новый кошелёк в портфель (если его ещё нет).
+    get_total_value(base_currency='USD') — возвращает общую стоимость всех валют пользователя в указанной базовой валюте (по курсам, полученным из API или фиктивным данным).
+    get_wallet(currency_code) — возвращает объект Wallet по коду 
+    '''
+    def __init__(
+            self,
+            user_id: int,
+            wallets: dict[str, Wallet]
+    ):
+        self._user_id = user_id
+        self._wallets = wallets
+    
+    @property
+    def user(self):
+        return self._user_id
+    
+    def wallets(self) -> dict:
+        return self._wallets.copy()
+    
+    def add_currency(self, currency_code: str):
+        if currency_code in self._wallets:
+            raise ValueError(f'Валюта {currency_code} уже есть в портфеле')
+        self._wallets[currency_code] = Wallet(currency_code, 0.0)
+
+    def get_total_value(self, base_currency: str = 'USD'):
+        exchange_rates = {
+            'USD' : 1.0,
+            'EUR' : 0.92,
+            'BTC' : 45000.0,
+            'ETH' : 2500.0,
+            'RUB' : 0.011
+        }
+
+        total_value = 0.0
+        for currency_code, wallet in self._wallets.items():
+            if currency_code == base_currency:
+                total_value += wallet.balance
+            else:
+                if currency_code in exchange_rates and base_currency in exchange_rates:
+                    value_in_usd = wallet.balance * exchange_rates[currency_code]
+                    value_in_base = value_in_usd / exchange_rates[base_currency]
+                    total_value += value_in_base
+                else:
+                    continue    
+        return round(total_value, 2)
+    
+    def get_wallet(self, currency_code: str):
+        if currency_code not in self._wallets:
+            raise ValueError(f"Валюта {currency_code} не найдена в портфеле")
+        
+        return self._wallets[currency_code]
+
+    
+
+
+
     
