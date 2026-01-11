@@ -82,3 +82,57 @@ class User:
         salted_password = password + self._salt
         hash_object.update(salted_password.encode('utf-8'))
         return hash_object.hexdigest() == self._hashed_password
+
+class Wallet:
+    '''
+    currency_code: str — код валюты (например, "USD", "BTC").
+    _balance: float — баланс в данной валюте (по умолчанию 0.0).
+    '''
+
+    def __init__(
+        self,
+        currency_code: str,
+        balance: float = 0.0,
+    ):
+        self.currency_code = currency_code
+        self._balance = 0.0
+        self.balance = balance
+    
+    @property
+    def balance(self) -> float:
+        return self._balance
+    
+    @balance.setter
+    def balance(self, value: float):
+        if not isinstance(value, (int, float)):
+            raise TypeError('Баланс должен быть числом')
+        if value < 0:
+            raise ValueError('Баланс не может быть отрицательным')
+        
+        self._balance = float(value)
+    
+    def deposit(self, amount: float):
+        if not isinstance(amount, (int, float)):
+            raise TypeError('Сумма  для пополнения должна быть числом')
+        if amount <= 0:
+            raise ValueError('Сумма  для пополнения не может быть отрицательной')
+        
+        self.balance += amount
+    
+    def withdraw(self, amount: float):
+        if not isinstance(amountm, (int, float)):
+            raise TypeError('Сумма для снятия должна быть числом')
+        if amount <= 0:
+            raise ValueError('Сумма для сняти не может быть отрицательной')
+        if amount > self.balance:
+            raise ValueError('Недостаточно средств на балансе')
+        
+        self.balance -= amount
+    
+    def get_balance(self):
+        return {
+            "currency_code": self.currency_code,
+            "balance": self._balance
+        }
+        
+    
