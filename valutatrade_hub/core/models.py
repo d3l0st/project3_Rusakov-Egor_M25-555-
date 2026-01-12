@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime
 
 from .utils import JSONFileManager
-
+from .currencies import get_currency
 
 class User:
     '''
@@ -94,10 +94,20 @@ class Wallet:
         currency_code: str,
         balance: float = 0.0,
     ):
+        try:
+            self._currency_object = get_currency(currency_code) 
+        except ValueError as e:
+            raise ValueError(f"Неверный код валюты: {e}")
+        
         self.currency_code = currency_code
         self._balance = 0.0
         self.balance = balance
     
+    @property
+    def currency(self):
+        """Добавляем геттер для объекта валюты (для использования в UI)"""
+        return self._currency_object
+
     @property
     def balance(self) -> float:
         return self._balance

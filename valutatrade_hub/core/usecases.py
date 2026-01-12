@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from .models import Portfolio, User, Wallet
 from .utils import JSONFileManager, PasswordHasher
+from .currencies import get_currency
 
 
 class AuthUseCases:
@@ -200,6 +201,14 @@ class ExchangeUseCases:
     
     @staticmethod
     def buy_currency(user_id: int, currency_code: str, amount: float) -> Dict:
+        try:
+            currency_obj = get_currency(currency_code)  
+        except ValueError as e:
+            return {
+                "success": False,
+                "error": f"Неверный код валюты: {currency_code}. {e}"
+            }
+        
         portfolio = PortfolioUseCases._load_portfolio(user_id)
     
         rates = JSONFileManager.read_rates()
@@ -224,7 +233,7 @@ class ExchangeUseCases:
         if usd_wallet.balance < cost_usd:
             return {
                 "success": False,
-                "error": f"Недостаточно средств на USD кошельке"
+                "error": "Недостаточно средств на USD кошельке"
             }
     
     
@@ -250,6 +259,14 @@ class ExchangeUseCases:
     
     @staticmethod
     def sell_currency(user_id: int, currency_code: str, amount: float) -> Dict:
+        try:
+            currency_obj = get_currency(currency_code)  # Проверяем, что валюта существует
+        except ValueError as e:
+            return {
+                "success": False,
+                "error": f"Неверный код валюты: {currency_code}. {e}"
+            }
+        
         portfolio = PortfolioUseCases._load_portfolio(user_id)
 
         

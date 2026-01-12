@@ -2,6 +2,7 @@
 from typing import Optional
 
 from ..core.usecases import AuthUseCases, ExchangeUseCases, PortfolioUseCases
+from ..core.currencies import FiatCurrency, CryptoCurrency, get_currency
 
 
 class CLIInterface:
@@ -87,14 +88,24 @@ class CLIInterface:
                 print("Портфель пуст")
             else:
                 for wallet in result['wallets']:
+                    try:
+                        currency_obj = get_currency(wallet['currency'])
+                        
+                        if isinstance(currency_obj, FiatCurrency):
+                            currency_type = "[FIAT]"
+                        elif isinstance(currency_obj, CryptoCurrency):
+                            currency_type = "[CRYPTO]"
+                        else:
+                            currency_type = "[?]"
+                    except ValueError:
+                        currency_type = ""
                     if wallet['value_in_base'] > 0:
-                        print(f"- {wallet['currency']}: {wallet['balance']:.4f}  → {wallet['value_in_base']:.2f} {base_currency}")
+                        print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}  → {wallet['value_in_base']:.2f} {base_currency}")
                     else:
-                        print(f"- {wallet['currency']}: {wallet['balance']:.4f}")
-            
+                        print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}")
+        
             print(f"ИТОГО: {result['total_value']:,.2f} {base_currency}")
             return True
-            
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
