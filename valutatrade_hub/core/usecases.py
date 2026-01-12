@@ -71,16 +71,6 @@ class AuthUseCases:
     
     @staticmethod
     def login(username: str, password: str) -> Optional[Dict[str, Any]]:
-        """
-        Вход пользователя в систему
-        
-        Args:
-            username: Имя пользователя
-            password: Пароль
-            
-        Returns:
-            Информация о пользователе или None
-        """
         users = JSONFileManager.read_users()
         
         for user_data in users:
@@ -94,7 +84,6 @@ class AuthUseCases:
                     registration_date=reg_date
                 )
                 
-                # Проверяем пароль
                 if user.verify_password(password):
                     return {
                         "user_id": user.user_id,
@@ -109,15 +98,12 @@ class PortfolioUseCases:
 
     @staticmethod
     def show_portfolio(user_id: int, base_currency: str = 'USD') -> Dict:
-        """Новый метод с base_currency"""
         portfolio = PortfolioUseCases._load_portfolio(user_id)
         
-        # Получаем курсы для расчета
         rates = JSONFileManager.read_rates()
         
         wallets_info = []
         for currency_code, wallet in portfolio._wallets.items():
-            # Рассчитываем стоимость в базовой валюте
             if currency_code == base_currency:
                 value_in_base = wallet.balance
             else:
@@ -126,7 +112,7 @@ class PortfolioUseCases:
                     rate = rates[pair]['rate']
                     value_in_base = wallet.balance * rate
                 else:
-                    value_in_base = 0  # или пропускаем
+                    value_in_base = 0  
             
             wallets_info.append({
                 'currency': currency_code,
@@ -134,7 +120,6 @@ class PortfolioUseCases:
                 'value_in_base': value_in_base
             })
         
-        # Общая стоимость
         total_value = portfolio.get_total_value(base_currency)
         
         return {
