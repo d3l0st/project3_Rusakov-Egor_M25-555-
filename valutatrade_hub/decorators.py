@@ -30,6 +30,8 @@ def _log_action(logger: logging.Logger, context: Dict,
             message_parts.append(f"rate={rate:.2f}")
         else:
             message_parts.append(f"rate={rate}")
+    if 'result' in context:
+        message_parts.append(f"result={context['result']}")
     if 'base_currency' in context:
         message_parts.append(f"base={context['base_currency']}")
     
@@ -53,12 +55,14 @@ def log_action(action_name: str, verbose: bool = False):
             try:
                 result = func(*args, **kwargs)
                 _extract_logging_data(context, args, kwargs, result, verbose)
+                context['result'] = 'OK' 
                 _log_action(logger, context, logging.INFO)
                 return result
                 
             except Exception as e:
                 context['error'] = str(e)
                 context['error_type'] = type(e).__name__
+                context['result'] = 'ERROR'
                 _log_action(logger, context, logging.ERROR, exc_info=True)
                 raise
         
@@ -89,7 +93,6 @@ def _extract_logging_data(context: Dict, args: tuple, kwargs: Dict,
                 context['amount'] = float(args[2])
             except (ValueError, TypeError):
                 pass
-        
         if 'user_id' in kwargs:
             context['user_id'] = kwargs['user_id']
         if 'currency_code' in kwargs:
@@ -104,17 +107,20 @@ def _extract_logging_data(context: Dict, args: tuple, kwargs: Dict,
     
     elif action == 'GET_RATE':
         if len(args) >= 1:
-            context['currency_code'] = args[0]  
+            context['currency_code'] = args[0] 
         if len(args) >= 2:
-            context['base_currency'] = args[1]          
+            context['base_currency'] = args[1] 
+        
         if 'from_currency' in kwargs:
             context['currency_code'] = kwargs['from_currency']
+        elif 'from' in kwargs:
+            context['currency_code'] = kwargs['from']
+        
         if 'to_currency' in kwargs:
             context['base_currency'] = kwargs['to_currency']
-        if 'from' in kwargs:
-            context['currency_code'] = kwargs['from']
-        if 'to' in kwargs:
+        elif 'to' in kwargs:
             context['base_currency'] = kwargs['to']
+        
     
     if result and isinstance(result, dict):
         if 'currency' in result:
