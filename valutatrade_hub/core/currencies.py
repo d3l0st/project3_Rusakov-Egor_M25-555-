@@ -1,3 +1,4 @@
+# valutatrade_hub/core/currencies.py
 from abc import ABC, abstractmethod
 from typing import Dict
 
