@@ -204,15 +204,19 @@ class CLIInterface:
             )
             
             if result['success']:
-                print(f"Продажа выполнена: {amount:.4f} {currency} по курсу {result['rate']} USD/{currency}")
-                print("Изменения в портфеле:")
-                print(f"- {currency}: было {result['old_balance']:.4f} → стало {result['new_balance']:.4f}")
-                print(f"Оценочная выручка: {result['revenue_usd']:.2f} USD")
+                if currency != 'USD':
+                    print(f"Продажа выполнена: {amount:.4f} {currency} по курсу {result['rate']} USD/{currency}")
+                    print("Изменения в портфеле:")
+                    print(f"- {currency}: было {result['old_balance']:.4f} → стало {result['new_balance']:.4f}")
+                    print(f"Оценочная выручка: {result['revenue_usd']:.2f} USD")
+                else:
+                    print(f"Продажа выполнена: {amount:.4f} {currency}")
+                    print("Изменения в портфеле:")
+                    print(f"- USD: было {result['old_balance']:.2f} → стало {result['new_balance']:.2f}")
             else:
                 print(f"Ошибка: {result.get('error', 'Неизвестная ошибка')}")
-            
+        
             return result['success']
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
-    

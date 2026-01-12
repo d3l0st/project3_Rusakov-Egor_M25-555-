@@ -251,43 +251,64 @@ class ExchangeUseCases:
     @staticmethod
     def sell_currency(user_id: int, currency_code: str, amount: float) -> Dict:
         portfolio = PortfolioUseCases._load_portfolio(user_id)
+
         
         if currency_code not in portfolio._wallets:
             return {
                 "success": False,
-                "error": f"У вас нет кошелька '{currency_code}'"
+                "error": f"У вас нет кошелька '{currency_code}'. Добавьте валюту: она создаётся автоматически при первой покупке."
             }
-        
+
         wallet = portfolio.get_wallet(currency_code)
-        
+
         if wallet.balance < amount:
             return {
                 "success": False,
-                "error": f"Недостаточно средств: доступно {wallet.balance} {currency_code}, требуется {amount}"
+                "error": f"Недостаточно средств: доступно {wallet.balance:.4f} {currency_code}, требуется {amount:.4f}"
             }
-        
+
         old_balance = wallet.balance
         wallet.withdraw(amount)
-        
+        new_balance = wallet.balance 
+
+        if currency_code == 'USD':
+            PortfolioUseCases._save_portfolio(portfolio)
+            return {
+                "success": True,
+                "currency": currency_code,
+                "amount": amount,
+                "old_balance": old_balance,
+                "new_balance": new_balance,
+                "rate": 1.0,
+                "revenue_usd": amount
+            }
+
         rates = JSONFileManager.read_rates()
         pair = f"{currency_code}_USD"
-        rate = rates.get(pair, {}).get('rate', 0) if pair in rates else 0
-        
+
+        if pair not in rates:
+            return {
+                "success": False,
+                "error": f"Не удалось получить курс для {currency_code}→USD"
+            }
+
+        rate = rates[pair]['rate']
+        revenue_usd = amount * rate
+
         if 'USD' not in portfolio._wallets:
             portfolio.add_currency('USD')
-        
+
         usd_wallet = portfolio.get_wallet('USD')
-        revenue_usd = amount * rate
         usd_wallet.deposit(revenue_usd)
 
         PortfolioUseCases._save_portfolio(portfolio)
-        
+
         return {
             "success": True,
             "currency": currency_code,
             "amount": amount,
             "old_balance": old_balance,
-            "new_balance": wallet.balance,
+            "new_balance": new_balance,
             "rate": rate,
             "revenue_usd": revenue_usd
         }

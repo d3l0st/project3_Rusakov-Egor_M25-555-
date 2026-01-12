@@ -59,9 +59,6 @@ class User:
         self._username = value.strip()
     
     def get_user_info(self):
-        """
-        Выводит информацию о пользователе (без пароля)
-        """
         return {
             "user_id": self._user_id,
             "username": self._username,
@@ -69,9 +66,6 @@ class User:
         }
     
     def change_password(self, new_password: str):
-        """
-        Изменяет пароль пользователя, с хешированием нового пароля
-        """
         if len(new_password) < 4:
             raise ValueError("Пароль должен быть не короче 4 символов")
         hash_object = hashlib.sha256()
@@ -80,9 +74,6 @@ class User:
         self._hashed_password = hash_object.hexdigest()
     
     def verify_password(self, password: str):
-        """
-        Проверяет введённый пароль на совпадение
-        """
         hash_object = hashlib.sha256()
         salted_password = password + self._salt
         hash_object.update(salted_password.encode('utf-8'))

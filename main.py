@@ -95,13 +95,13 @@ def main():
                 cli.sell(args_dict)
             elif command == 'help':
                 print("\nДоступные команды:")
-                print("  register --username <имя> --password <пароль>")
-                print("  login --username <имя> --password <пароль>")
+                print("  register --username <имя пользователя> --password <пароль>")
+                print("  login --username <имя пользователя> --password <пароль>")
                 print("  show-portfolio [--base <валюта>]")
                 print("  get-rate --from <валюта> --to <валюта>")
-                print("  buy --currency <код> --amount <сумма>")
-                print("  sell --currency <код> --amount <сумма>")
-                print("  help - показать эту справку")
+                print("  buy --currency <код валюты> --amount <сумма>")
+                print("  sell --currency <код валюты > --amount <сумма>")
+                print("  help - показать данную справку")
                 print("  exit - выйти из программы")
             else:
                 print(f"Неизвестная команда: {command}")
