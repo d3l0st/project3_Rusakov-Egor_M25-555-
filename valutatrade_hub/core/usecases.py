@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from .models import Portfolio, User, Wallet
 from .utils import JSONFileManager, PasswordHasher
+from ..infra.settings import settings
 from .currencies import get_currency
 from .exceptions import ( 
     InsufficientFundsError, 
@@ -104,6 +105,10 @@ class PortfolioUseCases:
 
     @staticmethod
     def show_portfolio(user_id: int, base_currency: str = 'USD') -> Dict:
+
+        if base_currency is None:
+            base_currency = settings.get('default_base_currency', 'USD')
+        
         portfolio = PortfolioUseCases._load_portfolio(user_id)
         
         rates = JSONFileManager.read_rates()
@@ -176,12 +181,15 @@ class PortfolioUseCases:
     def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
         rates = JSONFileManager.read_rates()
         pair = f"{from_currency}_{to_currency}"
+
+        rates_ttl = timedelta(seconds=settings.get('rates_ttl_seconds', 300))
+
         
         if pair in rates:
             rate_data = rates[pair]
             updated_at = datetime.fromisoformat(rate_data['updated_at'])
             
-            if datetime.now() - updated_at < timedelta(minutes=5):
+            if datetime.now() - updated_at < rates_ttl:
                 return {
                     "from": from_currency,
                     "to": to_currency,
@@ -207,9 +215,17 @@ class PortfolioUseCases:
 
     
 class ExchangeUseCases:
-    
+
     @staticmethod
     def buy_currency(user_id: int, currency_code: str, amount: float) -> Dict:
+
+        min_amount = settings.get('min_transaction_amount', 0.01)
+        if amount < min_amount:
+            return {
+                "success": False,
+                "error": f"Минимальная сумма транзакции: {min_amount}"
+            }
+        
         try:
             currency_obj = get_currency(currency_code)  
         except CurrencyNotFoundError as e:

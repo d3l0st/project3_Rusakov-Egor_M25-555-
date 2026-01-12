@@ -1,0 +1,14 @@
+{
+    "data_path": "data",
+    "rates_ttl_seconds": 300,
+    "default_base_currency": "USD",
+    "log_path": "logs",
+    "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "log_level": "INFO",
+    "log_rotation": "1 MB",
+    "log_backup_count": 5,
+    "api_timeout": 30,
+    "max_wallet_balance": 1000000.0,
+    "min_transaction_amount": 0.01,
+    "supported_currencies": ["USD", "EUR", "GBP", "BTC", "ETH"]
+}
