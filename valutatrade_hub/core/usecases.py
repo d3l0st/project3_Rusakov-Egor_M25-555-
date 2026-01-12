@@ -1,5 +1,5 @@
 # valutatrade_hub/core/usecases.py
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 from .models import Portfolio, User, Wallet
@@ -154,6 +154,19 @@ class PortfolioUseCases:
         JSONFileManager.write_portfolios(portfolios_data)
     
     @staticmethod
+    def _load_portfolio(user_id: int) -> Portfolio:
+        portfolios_data = JSONFileManager.read_portfolios()
+    
+        for portfolio_data in portfolios_data:
+            if portfolio_data['user_id'] == user_id:
+                wallets = {}
+                for currency_code, wallet_info in portfolio_data['wallets'].items():
+                    wallets[currency_code] = Wallet(currency_code, wallet_info['balance'])
+                return Portfolio(user_id, wallets)
+    
+        return Portfolio(user_id, {})
+
+    @staticmethod
     def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
         rates = JSONFileManager.read_rates()
         pair = f"{from_currency}_{to_currency}"
@@ -188,26 +201,51 @@ class ExchangeUseCases:
     @staticmethod
     def buy_currency(user_id: int, currency_code: str, amount: float) -> Dict:
         portfolio = PortfolioUseCases._load_portfolio(user_id)
-        
-        if currency_code not in portfolio._wallets:
-            portfolio.add_currency(currency_code)
-        
-        wallet = portfolio.get_wallet(currency_code)
-        wallet.deposit(amount)
-        
-        PortfolioUseCases._save_portfolio(portfolio)
-        
+    
         rates = JSONFileManager.read_rates()
         pair = f"{currency_code}_USD"
-        rate = rates.get(pair, {}).get('rate', 0) if pair in rates else 0
-        
+    
+        if pair not in rates:
+            return {
+                "success": False,
+                "error": f"Не удалось получить курс для {currency_code}→USD"
+            }
+    
+        rate = rates[pair]['rate']
+        cost_usd = amount * rate
+    
+    
+        if 'USD' not in portfolio._wallets:
+            portfolio.add_currency('USD')
+    
+        usd_wallet = portfolio.get_wallet('USD')
+    
+    
+        if usd_wallet.balance < cost_usd:
+            return {
+                "success": False,
+                "error": f"Недостаточно средств на USD кошельке"
+            }
+    
+    
+        usd_wallet.withdraw(cost_usd)
+    
+    
+        if currency_code not in portfolio._wallets:
+            portfolio.add_currency(currency_code)
+        target_wallet = portfolio.get_wallet(currency_code)
+        target_wallet.deposit(amount)
+    
+        PortfolioUseCases._save_portfolio(portfolio)
+    
         return {
             "success": True,
             "currency": currency_code,
             "amount": amount,
-            "new_balance": wallet.balance,
+            "new_balance": target_wallet.balance,
             "rate": rate,
-            "estimated_cost_usd": amount * rate if rate else 0
+            "estimated_cost_usd": cost_usd,
+            "usd_spent": cost_usd
         }
     
     @staticmethod

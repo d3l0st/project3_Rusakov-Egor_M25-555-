@@ -1,6 +1,8 @@
 import hashlib
 from datetime import datetime
 
+from .utils import JSONFileManager
+
 
 class User:
     '''
