@@ -19,7 +19,6 @@ class User:
         self,
         user_id: int,
         username: str,
-        password: str,
         hashed_password: str,
         salt: str,
         registration_date: datetime
@@ -164,6 +163,7 @@ class Portfolio:
     def user(self):
         return self._user_id
     
+    @property
     def wallets(self) -> dict:
         return self._wallets.copy()
     
