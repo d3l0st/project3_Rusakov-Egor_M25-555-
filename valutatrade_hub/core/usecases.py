@@ -3,8 +3,10 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 from .models import Portfolio, User, Wallet
-from .utils import JSONFileManager, PasswordHasher
+from .utils import PasswordHasher
+from ..infra.database import db as DatabaseManager
 from ..infra.settings import settings
+from ..decorators import log_buy, log_sell, log_register, log_login, log_get_rate
 from .currencies import get_currency
 from .exceptions import ( 
     InsufficientFundsError, 
@@ -16,6 +18,7 @@ from .exceptions import (
 class AuthUseCases:
     
     @staticmethod
+    @log_register(verbose=True)
     def register(username: str, password: str) -> Dict[str, Any]:
         """
         Регистрация нового пользователя 
@@ -31,7 +34,7 @@ class AuthUseCases:
         
         username = username.strip()
         
-        users = JSONFileManager.read_users()
+        users = DatabaseManager.read_users()
         for user in users:
             if user['username'] == username:
                 raise ValueError(f"Имя пользователя '{username}' уже занято")
@@ -55,9 +58,9 @@ class AuthUseCases:
         }
         
         users.append(user_data)
-        JSONFileManager.write_users(users)
+        DatabaseManager.write_users(users)
         
-        portfolios = JSONFileManager.read_portfolios()
+        portfolios = DatabaseManager.read_portfolios()
         
         portfolio_exists = any(p['user_id'] == user_id for p in portfolios)
         
@@ -67,7 +70,7 @@ class AuthUseCases:
                 "wallets": {}
             }
             portfolios.append(portfolio_data)
-            JSONFileManager.write_portfolios(portfolios)
+            DatabaseManager.write_portfolios(portfolios)
         
         return {
             "success": True,
@@ -77,8 +80,9 @@ class AuthUseCases:
         }
     
     @staticmethod
+    @log_login(verbose=True) 
     def login(username: str, password: str) -> Optional[Dict[str, Any]]:
-        users = JSONFileManager.read_users()
+        users = DatabaseManager.read_users()
         
         for user_data in users:
             if user_data['username'] == username:
@@ -111,7 +115,7 @@ class PortfolioUseCases:
         
         portfolio = PortfolioUseCases._load_portfolio(user_id)
         
-        rates = JSONFileManager.read_rates()
+        rates = DatabaseManager.read_rates()
         
         wallets_info = []
         for currency_code, wallet in portfolio._wallets.items():
@@ -142,7 +146,7 @@ class PortfolioUseCases:
     
     @staticmethod
     def _save_portfolio(portfolio: Portfolio):
-        portfolios_data = JSONFileManager.read_portfolios()
+        portfolios_data = DatabaseManager.read_portfolios()
         
         portfolio_dict = {
             "user_id": portfolio._user_id,
@@ -162,11 +166,11 @@ class PortfolioUseCases:
         if not found:
             portfolios_data.append(portfolio_dict)
         
-        JSONFileManager.write_portfolios(portfolios_data)
+        DatabaseManager.write_portfolios(portfolios_data)
     
     @staticmethod
     def _load_portfolio(user_id: int) -> Portfolio:
-        portfolios_data = JSONFileManager.read_portfolios()
+        portfolios_data = DatabaseManager.read_portfolios()
     
         for portfolio_data in portfolios_data:
             if portfolio_data['user_id'] == user_id:
@@ -178,8 +182,9 @@ class PortfolioUseCases:
         return Portfolio(user_id, {})
 
     @staticmethod
+    @log_get_rate()
     def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
-        rates = JSONFileManager.read_rates()
+        rates = DatabaseManager.read_rates()
         pair = f"{from_currency}_{to_currency}"
 
         rates_ttl = timedelta(seconds=settings.get('rates_ttl_seconds', 300))
@@ -217,6 +222,7 @@ class PortfolioUseCases:
 class ExchangeUseCases:
 
     @staticmethod
+    @log_buy(verbose=True) 
     def buy_currency(user_id: int, currency_code: str, amount: float) -> Dict:
 
         min_amount = settings.get('min_transaction_amount', 0.01)
@@ -236,7 +242,7 @@ class ExchangeUseCases:
         
         portfolio = PortfolioUseCases._load_portfolio(user_id)
     
-        rates = JSONFileManager.read_rates()
+        rates = DatabaseManager.read_rates()
         pair = f"{currency_code}_USD"
     
         if pair not in rates:
@@ -291,6 +297,7 @@ class ExchangeUseCases:
         }
     
     @staticmethod
+    @log_sell(verbose=True)
     def sell_currency(user_id: int, currency_code: str, amount: float) -> Dict:
         try:
             currency_obj = get_currency(currency_code) 
@@ -336,7 +343,7 @@ class ExchangeUseCases:
                 "revenue_usd": amount
             }
 
-        rates = JSONFileManager.read_rates()
+        rates = DatabaseManager.read_rates()
         pair = f"{currency_code}_USD"
 
         if pair not in rates:

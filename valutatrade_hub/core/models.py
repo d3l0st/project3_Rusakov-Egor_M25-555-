@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime
 
-from .utils import JSONFileManager
+from ..infra.database import db as DatabaseManager
 from .currencies import get_currency
 from .exceptions import InsufficientFundsError, CurrencyNotFoundError, WalletNotFoundError
 
@@ -181,7 +181,7 @@ class Portfolio:
         self._wallets[currency_code] = Wallet(currency_code, 0.0)
 
     def get_total_value(self, base_currency: str = 'USD'):
-        rates = JSONFileManager.read_rates()
+        rates = DatabaseManager.read_rates()
     
         total_value = 0.0
         for currency_code, wallet in self._wallets.items():
