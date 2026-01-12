@@ -184,6 +184,13 @@ class PortfolioUseCases:
     @staticmethod
     @log_get_rate()
     def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
+
+        try:
+            from_currency_obj = get_currency(from_currency)
+            to_currency_obj = get_currency(to_currency)
+        except CurrencyNotFoundError as e:
+            raise CurrencyNotFoundError(f"Неизвестная валюта: {str(e)}")
+        
         rates = DatabaseManager.read_rates()
         pair = f"{from_currency}_{to_currency}"
 
@@ -203,20 +210,9 @@ class PortfolioUseCases:
                     "is_fresh": True
                 }
             else:
-                return {
-                    "from": from_currency,
-                    "to": to_currency,
-                    "rate": rate_data['rate'],
-                    "updated_at": rate_data['updated_at'],
-                    "is_fresh": False,
-                    "message": str(ApiRequestError("Данные могут быть устаревшими"))
-                }
+                raise ApiRequestError(f"Данные устарели: курс {from_currency}→{to_currency} обновлен {updated_at}")
             
-        return {
-            "from": from_currency,
-            "to": to_currency,
-            "error": str(ApiRequestError(f"Курс {from_currency}→{to_currency} недоступен"))
-        }
+        raise ApiRequestError(f"Курс {from_currency}→{to_currency} недоступен")
 
     
 class ExchangeUseCases:
@@ -225,6 +221,12 @@ class ExchangeUseCases:
     @log_buy(verbose=True) 
     def buy_currency(user_id: int, currency_code: str, amount: float) -> Dict:
 
+        if amount <= 0:
+            return {
+                "success": False,
+                "error": "Сумма покупки должна быть положительной"
+            }
+    
         min_amount = settings.get('min_transaction_amount', 0.01)
         if amount < min_amount:
             return {
@@ -299,6 +301,13 @@ class ExchangeUseCases:
     @staticmethod
     @log_sell(verbose=True)
     def sell_currency(user_id: int, currency_code: str, amount: float) -> Dict:
+
+        if amount <= 0:
+            return {
+                "success": False,
+                "error": "Сумма продажи должна быть положительной"
+            }
+    
         try:
             currency_obj = get_currency(currency_code) 
         except CurrencyNotFoundError as e:
