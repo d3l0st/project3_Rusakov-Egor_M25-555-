@@ -5,7 +5,12 @@ from typing import Any, Dict, Optional
 from .models import Portfolio, User, Wallet
 from .utils import JSONFileManager, PasswordHasher
 from .currencies import get_currency
-
+from .exceptions import ( 
+    InsufficientFundsError, 
+    CurrencyNotFoundError, 
+    WalletNotFoundError,
+    ApiRequestError
+)
 
 class AuthUseCases:
     
@@ -191,10 +196,14 @@ class PortfolioUseCases:
                     "rate": rate_data['rate'],
                     "updated_at": rate_data['updated_at'],
                     "is_fresh": False,
-                    "message": "Данные могут быть устаревшими"
+                    "message": str(ApiRequestError("Данные могут быть устаревшими"))
                 }
-        
-        return None
+            
+        return {
+            "from": from_currency,
+            "to": to_currency,
+            "error": str(ApiRequestError(f"Курс {from_currency}→{to_currency} недоступен"))
+        }
 
     
 class ExchangeUseCases:
@@ -203,7 +212,7 @@ class ExchangeUseCases:
     def buy_currency(user_id: int, currency_code: str, amount: float) -> Dict:
         try:
             currency_obj = get_currency(currency_code)  
-        except ValueError as e:
+        except CurrencyNotFoundError as e:
             return {
                 "success": False,
                 "error": f"Неверный код валюты: {currency_code}. {e}"
@@ -217,7 +226,7 @@ class ExchangeUseCases:
         if pair not in rates:
             return {
                 "success": False,
-                "error": f"Не удалось получить курс для {currency_code}→USD"
+                "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD"))
             }
     
         rate = rates[pair]['rate']
@@ -230,14 +239,22 @@ class ExchangeUseCases:
         usd_wallet = portfolio.get_wallet('USD')
     
     
-        if usd_wallet.balance < cost_usd:
+        try:
+            if usd_wallet.balance < cost_usd:
+                raise InsufficientFundsError(
+                    currency_code='USD',
+                    available=usd_wallet.balance,
+                    required=cost_usd
+                )
+    
+    
+            usd_wallet.withdraw(cost_usd)
+    
+        except InsufficientFundsError as e:
             return {
                 "success": False,
-                "error": "Недостаточно средств на USD кошельке"
+                "error": str(e)
             }
-    
-    
-        usd_wallet.withdraw(cost_usd)
     
     
         if currency_code not in portfolio._wallets:
@@ -260,33 +277,36 @@ class ExchangeUseCases:
     @staticmethod
     def sell_currency(user_id: int, currency_code: str, amount: float) -> Dict:
         try:
-            currency_obj = get_currency(currency_code)  # Проверяем, что валюта существует
-        except ValueError as e:
+            currency_obj = get_currency(currency_code) 
+        except CurrencyNotFoundError as e:
             return {
                 "success": False,
                 "error": f"Неверный код валюты: {currency_code}. {e}"
             }
         
         portfolio = PortfolioUseCases._load_portfolio(user_id)
-
+        try:
+            if currency_code not in portfolio._wallets:
+                raise WalletNotFoundError(currency_code)
+                
+            wallet = portfolio.get_wallet(currency_code)
         
-        if currency_code not in portfolio._wallets:
+            if wallet.balance < amount:
+                raise InsufficientFundsError(
+                    currency_code=currency_code,
+                    available=wallet.balance,
+                    required=amount
+                )
+            
+            old_balance = wallet.balance
+            wallet.withdraw(amount) 
+            new_balance = wallet.balance
+            
+        except (WalletNotFoundError, InsufficientFundsError) as e:
             return {
                 "success": False,
-                "error": f"У вас нет кошелька '{currency_code}'. Добавьте валюту: она создаётся автоматически при первой покупке."
+                "error": str(e)
             }
-
-        wallet = portfolio.get_wallet(currency_code)
-
-        if wallet.balance < amount:
-            return {
-                "success": False,
-                "error": f"Недостаточно средств: доступно {wallet.balance:.4f} {currency_code}, требуется {amount:.4f}"
-            }
-
-        old_balance = wallet.balance
-        wallet.withdraw(amount)
-        new_balance = wallet.balance 
 
         if currency_code == 'USD':
             PortfolioUseCases._save_portfolio(portfolio)
@@ -306,7 +326,7 @@ class ExchangeUseCases:
         if pair not in rates:
             return {
                 "success": False,
-                "error": f"Не удалось получить курс для {currency_code}→USD"
+                "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD"))
             }
 
         rate = rates[pair]['rate']

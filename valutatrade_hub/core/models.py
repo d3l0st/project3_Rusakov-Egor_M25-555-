@@ -3,6 +3,7 @@ from datetime import datetime
 
 from .utils import JSONFileManager
 from .currencies import get_currency
+from .exceptions import InsufficientFundsError, CurrencyNotFoundError, WalletNotFoundError
 
 class User:
     '''
@@ -96,8 +97,8 @@ class Wallet:
     ):
         try:
             self._currency_object = get_currency(currency_code) 
-        except ValueError as e:
-            raise ValueError(f"Неверный код валюты: {e}")
+        except CurrencyNotFoundError as e:
+            raise ValueError(currency_code)
         
         self.currency_code = currency_code
         self._balance = 0.0
@@ -135,7 +136,11 @@ class Wallet:
         if amount <= 0:
             raise ValueError('Сумма для сняти не может быть отрицательной')
         if amount > self.balance:
-            raise ValueError('Недостаточно средств на балансе')
+             raise InsufficientFundsError(
+                currency_code=self.currency_code,
+                available=self.balance,
+                required=amount
+            )
         
         self.balance -= amount
     
@@ -199,7 +204,7 @@ class Portfolio:
     
     def get_wallet(self, currency_code: str):
         if currency_code not in self._wallets:
-            raise ValueError(f"Валюта {currency_code} не найдена в портфеле")
+            raise WalletNotFoundError(currency_code) 
         
         return self._wallets[currency_code]
 

@@ -3,7 +3,12 @@ from typing import Optional
 
 from ..core.usecases import AuthUseCases, ExchangeUseCases, PortfolioUseCases
 from ..core.currencies import FiatCurrency, CryptoCurrency, get_currency
-
+from ..core.exceptions import (  
+    InsufficientFundsError,
+    CurrencyNotFoundError,
+    ApiRequestError,
+    ValutaTradeException
+)
 
 class CLIInterface:
     def __init__(self):
@@ -97,8 +102,9 @@ class CLIInterface:
                             currency_type = "[CRYPTO]"
                         else:
                             currency_type = "[?]"
-                    except ValueError:
-                        currency_type = ""
+                    except CurrencyNotFoundError:
+                        currency_type = "[?]"
+                    
                     if wallet['value_in_base'] > 0:
                         print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}  → {wallet['value_in_base']:.2f} {base_currency}")
                     else:
@@ -109,7 +115,7 @@ class CLIInterface:
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
-    
+        
     def get_rate(self, args_dict):
         try:
             from_currency = args_dict.get('from', '').upper().strip()
@@ -118,18 +124,43 @@ class CLIInterface:
             if not from_currency or not to_currency:
                 print("Ошибка: требуются --from и --to")
                 return False
+            try:
+                from_currency_obj = get_currency(from_currency)
+            except CurrencyNotFoundError:
+                print(f"Ошибка: неизвестная валюта '{from_currency}'")
+                self._show_currency_help()
+                return False
+            
+            try:
+                to_currency_obj = get_currency(to_currency)
+            except CurrencyNotFoundError:
+                print(f"Ошибка: неизвестная валюта '{to_currency}'")
+                self._show_currency_help()
+                return False
             
             rate_info = PortfolioUseCases.get_exchange_rate(from_currency, to_currency)
             
+            if 'error' in rate_info:
+                # Обработка ApiRequestError
+                print(rate_info['error'])
+                print("Рекомендация: повторите попытку позже или проверьте подключение к сети")
+                return False
+            
             if rate_info:
                 print(f"Курс {from_currency}→{to_currency}: {rate_info['rate']} (обновлено: {rate_info['updated_at']})")
+                
+                if not rate_info.get('is_fresh', True):
+                    print(f"Внимание: {rate_info.get('message', 'Данные могут быть устаревшими')}")
                 
                 reverse_rate = 1 / rate_info['rate'] if rate_info['rate'] != 0 else 0
                 print(f"Обратный курс {to_currency}→{from_currency}: {reverse_rate:.8f}")
             else:
                 print(f"Курс {from_currency}→{to_currency} недоступен. Повторите попытку позже.")
-            
+
             return True
+        except ValutaTradeException as e:
+            print(f"Ошибка: {e}")
+            return False
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
@@ -177,6 +208,9 @@ class CLIInterface:
                 print(f"Ошибка: {result.get('error', 'Неизвестная ошибка')}")
             
             return result['success']
+        except ValutaTradeException as e:
+            print(f"Ошибка: {e}")
+            return False
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
@@ -228,6 +262,39 @@ class CLIInterface:
                 print(f"Ошибка: {result.get('error', 'Неизвестная ошибка')}")
         
             return result['success']
+        except ValutaTradeException as e:
+            print(f"Ошибка: {e}")
+            return False
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
+    
+    def _show_currency_help(self):
+        print("\nПоддерживаемые валюты:")
+        
+        try:
+            all_currencies = get_all_currencies()
+        
+            fiats = []
+            cryptos = []
+            
+            for code, currency in all_currencies.items():
+                if isinstance(currency, FiatCurrency):
+                    fiats.append(f"{code} - {currency.name}")
+                elif isinstance(currency, CryptoCurrency):
+                    cryptos.append(f"{code} - {currency.name}")
+            
+            if fiats:
+                print("\nФиатные валюты:")
+                for fiat in sorted(fiats):
+                    print(f"  {fiat}")
+            
+            if cryptos:
+                print("\nКриптовалюты:")
+                for crypto in sorted(cryptos):
+                    print(f"  {crypto}")
+            
+            print("\nИспользуйте команду: get-rate --from <валюта> --to <валюта>")
+            
+        except Exception:
+            print("Не удалось получить список валют. Попробуйте позже.")

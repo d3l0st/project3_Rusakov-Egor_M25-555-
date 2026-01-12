@@ -109,9 +109,8 @@ def register_currency(currency: Currency) -> None:
 def get_currency(code: str) -> Currency:
     code_upper = code.upper()
     if code_upper not in _CURRENCY_REGISTRY:
-        raise ValueError(f"Валюта с кодом '{code}' не найдена")
+        raise CurrencyNotFoundError(code) 
     return _CURRENCY_REGISTRY[code_upper]
-
 
 def get_all_currencies() -> Dict[str, Currency]:
     return _CURRENCY_REGISTRY.copy()
