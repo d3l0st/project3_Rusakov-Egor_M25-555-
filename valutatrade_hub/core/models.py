@@ -173,32 +173,26 @@ class Portfolio:
         self._wallets[currency_code] = Wallet(currency_code, 0.0)
 
     def get_total_value(self, base_currency: str = 'USD'):
-        exchange_rates = {
-            'USD' : 1.0,
-            'EUR' : 1.08,
-            'BTC' : 45000.0,
-            'ETH' : 2500.0,
-            'RUB' : 0.011
-        }
-
-        base_currency = base_currency.upper()
-        if base_currency not in exchange_rates:
-            raise ValueError(f"Неизвестная валюта: {base_currency}")
-        
-        total_value_usd = 0.0
-        for currency_code, wallet in self._wallets.items():
-            if currency_code in exchange_rates:
-                value_in_usd = wallet.balance * exchange_rates[currency_code]
-                total_value_usd += value_in_usd
-            else:
-                continue
-        
-        if base_currency == 'USD':
-            return round(total_value_usd, 2)
-        else:
-            value_in_base = total_value_usd / exchange_rates[base_currency]
-            return round(value_in_base, 2)
+        rates = JSONFileManager.read_rates()
     
+        total_value = 0.0
+        for currency_code, wallet in self._wallets.items():
+            if currency_code == base_currency:
+                total_value += wallet.balance
+            else:
+                pair = f"{currency_code}_{base_currency}"
+                if pair in rates:
+                    rate = rates[pair]['rate']
+                    total_value += wallet.balance * rate
+                else:
+                    if currency_code != 'USD' and base_currency != 'USD':
+                        pair1 = f"{currency_code}_USD"
+                        pair2 = f"USD_{base_currency}"
+                        if pair1 in rates and pair2 in rates:
+                            rate = rates[pair1]['rate'] * rates[pair2]['rate']
+                            total_value += wallet.balance * rate
+    
+        return round(total_value, 2)
     
     def get_wallet(self, currency_code: str):
         if currency_code not in self._wallets:
