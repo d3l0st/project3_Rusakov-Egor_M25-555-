@@ -178,14 +178,14 @@ class CLIInterface:
                 print("Ошибка: требуются --from и --to")
                 return False
             try:
-                from_currency_obj = get_currency(from_currency)
+                get_currency(from_currency)
             except CurrencyNotFoundError:
                 print(f"Ошибка: неизвестная валюта '{from_currency}'")
                 self._show_currency_help()
                 return False
             
             try:
-                to_currency_obj = get_currency(to_currency)
+                get_currency(to_currency)
             except CurrencyNotFoundError:
                 print(f"Ошибка: неизвестная валюта '{to_currency}'")
                 self._show_currency_help()

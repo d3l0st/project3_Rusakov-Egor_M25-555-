@@ -66,7 +66,6 @@ class SettingsLoader:
         self._config[key] = value
     
     def reload(self):
-        old_config = self._config.copy()
         self._config = {}
         self._load_config()
         self._set_defaults()

@@ -192,8 +192,8 @@ class PortfolioUseCases:
     def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
 
         try:
-            from_currency_obj = get_currency(from_currency)
-            to_currency_obj = get_currency(to_currency)
+            get_currency(from_currency)
+            get_currency(to_currency)
         except CurrencyNotFoundError as e:
             raise CurrencyNotFoundError(f"Неизвестная валюта: {str(e)}")
         
