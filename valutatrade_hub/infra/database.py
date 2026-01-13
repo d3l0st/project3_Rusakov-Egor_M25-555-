@@ -35,7 +35,10 @@ class DatabaseManager:
         self._write_json("portfolios.json", portfolios)
     
     def read_rates(self) -> Dict:
-        return self._read_json("rates.json", {})
+        data = self._read_json("rates.json", {})
+        if isinstance(data, dict) and 'pairs' in data:
+            return data['pairs']  
+        return data 
     
     def write_rates(self, rates: Dict):
         self._write_json("rates.json", rates)

@@ -1,97 +1,97 @@
 {
   "pairs": {
     "BTC_USD": {
-      "rate": 92263,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "rate": 92125,
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "ETH_USD": {
-      "rate": 3135.06,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "rate": 3134.55,
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "BNB_USD": {
-      "rate": 909.97,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "rate": 909.3,
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "ADA_USD": {
-      "rate": 0.392968,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "rate": 0.392795,
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "SOL_USD": {
-      "rate": 141.67,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "rate": 141.7,
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "XRP_USD": {
       "rate": 2.06,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "DOT_USD": {
       "rate": 2.09,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "DOGE_USD": {
-      "rate": 0.139497,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "rate": 0.139541,
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "coingecko"
     },
     "EUR_USD": {
       "rate": 0.8566,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "GBP_USD": {
       "rate": 0.7428,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "JPY_USD": {
       "rate": 157.9877,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "CHF_USD": {
       "rate": 0.7974,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "CAD_USD": {
       "rate": 1.3877,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "AUD_USD": {
       "rate": 1.4904,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "RUB_USD": {
       "rate": 78.5337,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     },
     "CNY_USD": {
       "rate": 6.9856,
-      "updated_at": "2026-01-13T12:19:47.388675",
+      "updated_at": "2026-01-13T12:57:36.344098",
       "source": "exchangerate"
     }
   },
-  "last_refresh": "2026-01-13T12:19:47.891779",
+  "last_refresh": "2026-01-13T12:57:36.870933",
   "source_info": {
     "coingecko": {
       "status": "success",
       "rates_count": 8,
-      "timestamp": "2026-01-13T12:19:47.388675"
+      "timestamp": "2026-01-13T12:57:36.344098"
     },
     "exchangerate": {
       "status": "success",
       "rates_count": 8,
-      "timestamp": "2026-01-13T12:19:47.388675"
+      "timestamp": "2026-01-13T12:57:36.344098"
     }
   }
 }

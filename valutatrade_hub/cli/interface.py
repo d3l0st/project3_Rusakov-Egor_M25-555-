@@ -185,11 +185,11 @@ class CLIInterface:
                 self._show_currency_help()
                 return False
             
-            rate_info = PortfolioUseCases.get_exchange_rate(from_currency, to_currency)
-            
-            if 'error' in rate_info:
-                print(rate_info['error'])
-                print("Рекомендация: повторите попытку позже или проверьте подключение к сети")
+            try:
+                rate_info = PortfolioUseCases.get_exchange_rate(from_currency, to_currency)
+            except ApiRequestError as e:
+                print(f"Ошибка: {str(e)}")
+                print("Попробуйте выполнить: update-rates")
                 return False
             
             if rate_info:

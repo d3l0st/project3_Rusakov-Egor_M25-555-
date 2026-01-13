@@ -191,7 +191,13 @@ class PortfolioUseCases:
         except CurrencyNotFoundError as e:
             raise CurrencyNotFoundError(f"Неизвестная валюта: {str(e)}")
         
-        rates = DatabaseManager.read_rates()
+        rates_data = DatabaseManager.read_rates()
+
+        if isinstance(rates_data, dict) and 'pairs' in rates_data:
+            rates = rates_data['pairs']
+        else:
+            rates = rates_data
+    
         pair = f"{from_currency}_{to_currency}"
 
         rates_ttl = timedelta(seconds=settings.get('rates_ttl_seconds', 300))
@@ -212,7 +218,8 @@ class PortfolioUseCases:
             else:
                 raise ApiRequestError(f"Данные устарели: курс {from_currency}→{to_currency} обновлен {updated_at}")
             
-        raise ApiRequestError(f"Курс {from_currency}→{to_currency} недоступен")
+        else:
+            raise ApiRequestError(f"Курс {from_currency}→{to_currency} недоступен")
 
     
 class ExchangeUseCases:
