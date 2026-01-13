@@ -67,8 +67,13 @@ class AuthUseCases:
         if not portfolio_exists:
             portfolio_data = {
                 "user_id": user_id,
-                "wallets": {}
+                "wallets": {
+                    "USD": {
+                        "currency_code": "USD",
+                        "balance": 10000.0
+                }
             }
+        }
             portfolios.append(portfolio_data)
             DatabaseManager.write_portfolios(portfolios)
         
