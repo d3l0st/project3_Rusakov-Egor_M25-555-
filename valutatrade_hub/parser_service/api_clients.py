@@ -1,12 +1,12 @@
 # valutatrade_hub/parser_service/api_clients.py
-import requests
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict
-from datetime import datetime
 
-from .config import ParserConfig
+import requests
+
 from ..core.exceptions import ApiRequestError
+from .config import ParserConfig
 
 logger = logging.getLogger(__name__)
 

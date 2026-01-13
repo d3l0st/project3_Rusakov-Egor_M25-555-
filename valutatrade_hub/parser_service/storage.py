@@ -1,9 +1,9 @@
 # valutatrade_hub/parser_service/storage.py
 import json
+import logging
 import os
 from datetime import datetime
 from typing import Dict, List
-import logging
 
 logger = logging.getLogger(__name__)
 

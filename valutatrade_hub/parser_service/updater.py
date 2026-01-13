@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Dict
 
 from .api_clients import CoinGeckoClient, ExchangeRateApiClient
-from .storage import RatesStorage
 from .config import ParserConfig
+from .storage import RatesStorage
 
 logger = logging.getLogger(__name__)
 

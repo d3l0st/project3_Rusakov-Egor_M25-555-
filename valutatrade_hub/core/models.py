@@ -3,7 +3,12 @@ from datetime import datetime
 
 from ..infra.database import db as DatabaseManager
 from .currencies import get_currency
-from .exceptions import InsufficientFundsError, CurrencyNotFoundError, WalletNotFoundError
+from .exceptions import (
+    CurrencyNotFoundError,
+    InsufficientFundsError,
+    WalletNotFoundError,
+)
+
 
 class User:
     '''
@@ -97,7 +102,7 @@ class Wallet:
     ):
         try:
             self._currency_object = get_currency(currency_code) 
-        except CurrencyNotFoundError as e:
+        except CurrencyNotFoundError:
             raise ValueError(currency_code)
         
         self.currency_code = currency_code

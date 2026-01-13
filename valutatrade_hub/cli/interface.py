@@ -1,17 +1,23 @@
 # valutatrade_hub/cli/interface.py
-from typing import Optional
 import json
 import os
-from ..core.usecases import AuthUseCases, ExchangeUseCases, PortfolioUseCases
-from ..core.currencies import FiatCurrency, CryptoCurrency, get_currency, get_all_currencies
-from valutatrade_hub.parser_service.updater import RatesUpdater
+from typing import Optional
+
 from valutatrade_hub.parser_service.config import ParserConfig
-from ..core.exceptions import (  
-    InsufficientFundsError,
-    CurrencyNotFoundError,
-    ApiRequestError,
-    ValutaTradeException
+from valutatrade_hub.parser_service.updater import RatesUpdater
+
+from ..core.currencies import (
+    CryptoCurrency,
+    FiatCurrency,
+    get_currency,
 )
+from ..core.exceptions import (
+    ApiRequestError,
+    CurrencyNotFoundError,
+    ValutaTradeException,
+)
+from ..core.usecases import AuthUseCases, ExchangeUseCases, PortfolioUseCases
+
 
 class CLIInterface:
     def __init__(self):
@@ -140,7 +146,7 @@ class CLIInterface:
             result = updater.run_update(sources)
             
             if result['total_rates'] > 0:
-                print(f"\nОбновление завершено успешно!")
+                print("\nОбновление завершено успешно!")
                 print(f"   Всего курсов обновлено: {result['total_rates']}")
                 print(f"   Время обновления: {result['timestamp']}")
                 

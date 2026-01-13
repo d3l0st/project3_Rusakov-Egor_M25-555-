@@ -1,8 +1,8 @@
 # valutatrade_hub/infra/database.py
 import json
 import os
-from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 
 class DatabaseManager:
     _instance = None

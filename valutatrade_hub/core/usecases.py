@@ -2,19 +2,19 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from .models import Portfolio, User, Wallet
-from .utils import PasswordHasher
+from ..decorators import log_buy, log_get_rate, log_login, log_register, log_sell
 from ..infra.database import db as DatabaseManager
 from ..infra.settings import settings
-from .currencies import FiatCurrency, CryptoCurrency
-from ..decorators import log_buy, log_sell, log_register, log_login, log_get_rate
-from .currencies import get_currency
-from .exceptions import ( 
-    InsufficientFundsError, 
-    CurrencyNotFoundError, 
+from .currencies import CryptoCurrency, FiatCurrency, get_currency
+from .exceptions import (
+    ApiRequestError,
+    CurrencyNotFoundError,
+    InsufficientFundsError,
     WalletNotFoundError,
-    ApiRequestError
 )
+from .models import Portfolio, User, Wallet
+from .utils import PasswordHasher
+
 
 class AuthUseCases:
     

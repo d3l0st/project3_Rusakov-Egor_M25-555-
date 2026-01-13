@@ -1,9 +1,8 @@
+import json
 import logging
 import logging.handlers
-import json
 import os
 from datetime import datetime
-from typing import Dict, Any
 
 from .infra.settings import settings
 
