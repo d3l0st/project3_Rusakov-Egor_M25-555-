@@ -52,6 +52,7 @@ make run
 ```
 
 ### Файловая сруктура проекта:
+```
 finalproject_<фамилия>_<группа>/
 │  
 ├── data/
@@ -90,6 +91,7 @@ finalproject_<фамилия>_<группа>/
 ├── poetry.lock
 ├── pyproject.toml
 ├── README.md
-└── .gitignore               
+└── .gitignore   
+```            
 
 
