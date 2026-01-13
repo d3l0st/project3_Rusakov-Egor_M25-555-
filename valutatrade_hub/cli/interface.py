@@ -27,7 +27,7 @@ class CLIInterface:
                     parsed[key] = args[i + 1]
                     i += 2
                 else:
-                    parsed[key] = True
+                    parsed[key] = ''
                     i += 1
             else:
                 parsed['command'] = args[i]
@@ -329,7 +329,7 @@ class CLIInterface:
             for crypto in sorted(config.CRYPTO_CURRENCIES):
                 print(f"  {crypto}")
             
-            print("\n📝 Используйте команды:")
+            print("\nИспользуйте команды:")
             print("  update-rates [--source coingecko|exchangerate] - обновить курсы")
             print("  show-rates [--currency USD] [--top 5] - показать курсы из кэша")
             print("  get-rate --from USD --to EUR - получить конкретный курс")
@@ -410,7 +410,6 @@ class CLIInterface:
             if top_count:
                 sorted_pairs = sorted_pairs[:top_count]
             
-            # Вывод
             print(f"\nКурсы валют из кэша (обновлено: {data.get('last_refresh')}):")
             print("=" * 60)
             
