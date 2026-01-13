@@ -1,8 +1,11 @@
 # valutatrade_hub/cli/interface.py
 from typing import Optional
-
+import json
+import os
 from ..core.usecases import AuthUseCases, ExchangeUseCases, PortfolioUseCases
-from ..core.currencies import FiatCurrency, CryptoCurrency, get_currency
+from ..core.currencies import FiatCurrency, CryptoCurrency, get_currency, get_all_currencies
+from valutatrade_hub.parser_service.updater import RatesUpdater
+from valutatrade_hub.parser_service.config import ParserConfig
 from ..core.exceptions import (  
     InsufficientFundsError,
     CurrencyNotFoundError,
@@ -115,6 +118,50 @@ class CLIInterface:
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
+
+    def update_rates(self, args_dict):
+        source = args_dict.get('source') 
+        
+        print("Начало обновления курсов...")
+        
+        try:
+            updater = RatesUpdater()
+            
+            sources = None
+            if source:
+                if source not in ['coingecko', 'exchangerate']:
+                    print(f"Ошибка: неизвестный источник '{source}'. Используйте 'coingecko' или 'exchangerate'")
+                    return False
+                sources = [source]
+                print(f"Обновление данных только из источника: {source}")
+            else:
+                print("Обновление данных из всех источников...")
+            
+            result = updater.run_update(sources)
+            
+            if result['total_rates'] > 0:
+                print(f"\nОбновление завершено успешно!")
+                print(f"   Всего курсов обновлено: {result['total_rates']}")
+                print(f"   Время обновления: {result['timestamp']}")
+                
+                for source_name, info in result['sources'].items():
+                    if info['status'] == 'success':
+                        print(f"{source_name}: {info.get('rates_count', 0)} курсов")
+                    else:
+                        print(f"{source_name}: ошибка - {info.get('error', 'unknown')}")
+            else:
+                print("\nОбновление завершено, но курсы не получены")
+                print("   Проверьте подключение к интернету и API ключи")
+            
+            return result['total_rates'] > 0
+            
+        except ApiRequestError as e:
+            print(f"\nОшибка API: {str(e)}")
+            print("   Рекомендация: проверьте подключение к сети и API ключи")
+            return False
+        except Exception as e:
+            print(f"\nНеизвестная ошибка при обновлении курсов: {e}")
+            return False    
         
     def get_rate(self, args_dict):
         try:
@@ -141,7 +188,6 @@ class CLIInterface:
             rate_info = PortfolioUseCases.get_exchange_rate(from_currency, to_currency)
             
             if 'error' in rate_info:
-                # Обработка ApiRequestError
                 print(rate_info['error'])
                 print("Рекомендация: повторите попытку позже или проверьте подключение к сети")
                 return False
@@ -268,33 +314,120 @@ class CLIInterface:
         except Exception as e:
             print(f"Ошибка: {e}")
             return False
-    
+
     def _show_currency_help(self):
         print("\nПоддерживаемые валюты:")
         
         try:
-            all_currencies = get_all_currencies()
-        
-            fiats = []
-            cryptos = []
+            config = ParserConfig()
             
-            for code, currency in all_currencies.items():
-                if isinstance(currency, FiatCurrency):
-                    fiats.append(f"{code} - {currency.name}")
-                elif isinstance(currency, CryptoCurrency):
-                    cryptos.append(f"{code} - {currency.name}")
+            print(f"\nФиатные валюты (база: {config.BASE_CURRENCY}):")
+            for fiat in sorted(config.FIAT_CURRENCIES):
+                print(f"  {fiat}")
             
-            if fiats:
-                print("\nФиатные валюты:")
-                for fiat in sorted(fiats):
-                    print(f"  {fiat}")
+            print(f"\nКриптовалюты (база: {config.BASE_CURRENCY}):")
+            for crypto in sorted(config.CRYPTO_CURRENCIES):
+                print(f"  {crypto}")
             
-            if cryptos:
-                print("\nКриптовалюты:")
-                for crypto in sorted(cryptos):
-                    print(f"  {crypto}")
-            
-            print("\nИспользуйте команду: get-rate --from <валюта> --to <валюта>")
+            print("\n📝 Используйте команды:")
+            print("  update-rates [--source coingecko|exchangerate] - обновить курсы")
+            print("  show-rates [--currency USD] [--top 5] - показать курсы из кэша")
+            print("  get-rate --from USD --to EUR - получить конкретный курс")
             
         except Exception:
-            print("Не удалось получить список валют. Попробуйте позже.")
+            try:
+                from ..core.currencies import get_all_currencies
+                
+                all_currencies = get_all_currencies()
+                fiats = []
+                cryptos = []
+                
+                for code, currency in all_currencies.items():
+                    if isinstance(currency, FiatCurrency):
+                        fiats.append(f"{code} - {currency.name}")
+                    elif isinstance(currency, CryptoCurrency):
+                        cryptos.append(f"{code} - {currency.name}")
+                
+                if fiats:
+                    print("\nФиатные валюты:")
+                    for fiat in sorted(fiats):
+                        print(f"  {fiat}")
+                
+                if cryptos:
+                    print("\nКриптовалюты:")
+                    for crypto in sorted(cryptos):
+                        print(f"  {crypto}")
+                
+                print("\nИспользуйте команду: get-rate --from <валюта> --to <валюта>")
+                
+            except Exception:
+                print("Не удалось получить список валют. Проверьте настройки парсера.")
+    def show_rates(self, args_dict):
+        try:
+            if not os.path.exists('data/rates.json'):
+                print("Локальный кэш курсов пуст.")
+                print("Выполните 'update-rates', чтобы загрузить данные.")
+                return False
+            
+            with open('data/rates.json', 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            currency_filter = args_dict.get('currency', '').upper()
+            top_count = args_dict.get('top')
+            
+            if top_count:
+                try:
+                    top_count = int(top_count)
+                except ValueError:
+                    print("Ошибка: параметр --top должен быть числом")
+                    return False
+            
+            pairs = data.get('pairs', {})
+            
+            if not pairs:
+                print("Кэш курсов пуст.")
+                print("Выполните 'update-rates', чтобы загрузить данные.")
+                return False
+            
+            filtered_pairs = {}
+            for pair, info in pairs.items():
+                if currency_filter:
+                    from_curr, to_curr = pair.split('_')
+                    if from_curr != currency_filter and to_curr != currency_filter:
+                        continue
+                filtered_pairs[pair] = info
+            
+            if not filtered_pairs:
+                print(f"Курс для '{currency_filter}' не найден в кеше.")
+                return False
+            
+            sorted_pairs = sorted(
+                filtered_pairs.items(),
+                key=lambda x: x[1]['rate'],
+                reverse=True
+            )
+            
+            if top_count:
+                sorted_pairs = sorted_pairs[:top_count]
+            
+            # Вывод
+            print(f"\nКурсы валют из кэша (обновлено: {data.get('last_refresh')}):")
+            print("=" * 60)
+            
+            for pair, info in sorted_pairs:
+                from_curr, to_curr = pair.split('_')
+                print(f"  {from_curr} → {to_curr}:")
+                print(f"    Курс: {info['rate']:.6f}")
+                print(f"    Обновлен: {info['updated_at']}")
+                print(f"    Источник: {info['source']}")
+                print("-" * 40)
+            
+            print(f"Всего курсов: {len(sorted_pairs)}")
+            return True
+            
+        except json.JSONDecodeError:
+            print("Ошибка чтения файла с курсами. Файл поврежден.")
+            return False
+        except Exception as e:
+            print(f"Ошибка при отображении курсов: {e}")
+            return False

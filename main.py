@@ -28,29 +28,32 @@ def main():
         return 1
     
     cli = CLIInterface()
+    
     if len(sys.argv) > 1:
         command = sys.argv[1]
         args = _parse_args(sys.argv[2:])
         
-        if command == 'register':
-            cli.register(args)
-        elif command == 'login':
-            cli.login(args)
-        elif command == 'show-portfolio':
-            cli.show_portfolio(args)
-        elif command == 'get-rate':
-            cli.get_rate(args)
-        elif command == 'buy':
-            cli.buy(args)
-        elif command == 'sell':
-            cli.sell(args)
+        command_map = {
+            'register': cli.register,
+            'login': cli.login,
+            'show-portfolio': cli.show_portfolio,
+            'get-rate': cli.get_rate,
+            'update-rates': cli.update_rates,
+            'show-rates': cli.show_rates,
+            'buy': cli.buy,
+            'sell': cli.sell,
+            'help': lambda args: print_help()
+        }
+        
+        if command in command_map:
+            command_map[command](args)
         else:
             print(f"Неизвестная команда: {command}")
-            print("Используйте: register, login, show-portfolio, get-rate, buy, sell")
+            print_help()
         return 0
-
+    
     print("Введите команду или 'exit' для выхода")
-    print("Доступные команды: register, login, show-portfolio, get-rate, buy, sell, help")
+    print_help()
     print("-" * 50)
     
     while True:
@@ -81,35 +84,23 @@ def main():
                 else:
                     i += 1
             
-            if command == 'register':
-                cli.register(args_dict)
-            elif command == 'login':
-                cli.login(args_dict)
-            elif command == 'show-portfolio':
-                cli.show_portfolio(args_dict)
-            elif command == 'get-rate':
-                cli.get_rate(args_dict)
-            elif command == 'buy':
-                cli.buy(args_dict)
-            elif command == 'sell':
-                cli.sell(args_dict)
-            elif command == 'help':
-                print("\nДоступные команды:")
-                print("  register --username <имя> --password <пароль>")
-                print("  login --username <имя> --password <пароль>")
-                print("  show-portfolio [--base <валюта>]")
-                print("  get-rate --from <валюта> --to <валюта>  (при ошибке показывает список валют)")
-                print("  buy --currency <код> --amount <сумма>")
-                print("  sell --currency <код> --amount <сумма>")
-                print("\nОбработка ошибок:")
-                print("  • Недостаточно средств - показывается доступный баланс")
-                print("  • Неизвестная валюта - предлагается список поддерживаемых валют")
-                print("  • Ошибка API - предлагается повторить позже")
-                print("  help - показать эту справку")
-                print("  exit - выйти из программы")
+            command_map = {
+                'register': cli.register,
+                'login': cli.login,
+                'show-portfolio': cli.show_portfolio,
+                'get-rate': cli.get_rate,
+                'update-rates': cli.update_rates,
+                'show-rates': cli.show_rates,
+                'buy': cli.buy,
+                'sell': cli.sell,
+                'help': lambda args: print_help()
+            }
+            
+            if command in command_map:
+                command_map[command](args_dict)
             else:
                 print(f"Неизвестная команда: {command}")
-                print("Используйте 'help' для списка команд")
+                print_help()
                 
         except KeyboardInterrupt:
             print("\n\nВыход из программы...")
@@ -119,8 +110,24 @@ def main():
             break
         except Exception as e:
             print(f"Ошибка: {e}")
-    
-    return 0
+
+def print_help():
+    print("\nДоступные команды:")
+    print("Аутентификация:")
+    print("register --username <имя> --password <пароль>")
+    print("login --username <имя> --password <пароль>")
+    print("Портфель:")
+    print("show-portfolio [--base <валюта>]")
+    print("Курсы валют:")
+    print("update-rates [--source coingecko|exchangerate]")
+    print("show-rates [--currency <код>] [--top <число>]")
+    print("get-rate --from <валюта> --to <валюта>")
+    print("Торговля:")
+    print("buy --currency <код> --amount <сумма>")
+    print("sell --currency <код> --amount <сумма>")
+    print("Система:")
+    print("help - показать справку")
+    print("exit - выйти из программы")
 
 
 if __name__ == "__main__":
