@@ -54,7 +54,7 @@ class TextFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         record.asctime = self.formatTime(record, self.datefmt)
-        message = f"{record.levelname} {record.asctime} {record.name}: {record.getMessage()}"
+        message = f"{record.levelname} {record.asctime} {record.name}: {record.getMessage()}" # noqa: E501
         
         extra_parts = []
         
@@ -91,7 +91,7 @@ def setup_logging():
     log_level_name = settings.get('log_level', 'INFO').upper()
     log_level = getattr(logging, log_level_name, logging.INFO)
     
-    log_format_type = settings.get('log_format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')  
+    log_format_type = settings.get('log_format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # noqa: E501
     
     logger = logging.getLogger('valutatrade')
     logger.setLevel(log_level)

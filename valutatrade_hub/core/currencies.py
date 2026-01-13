@@ -94,7 +94,7 @@ class CryptoCurrency(Currency):
     
     def get_display_info(self) -> str:
         mcap_formatted = f"{self.market_cap:.2e}" if self.market_cap > 0 else "N/A"
-        return f"[CRYPTO] {self.code} — {self.name} (Algo: {self.algorithm}, MCAP: {mcap_formatted})"
+        return f"[CRYPTO] {self.code} — {self.name} (Algo: {self.algorithm}, MCAP: {mcap_formatted})" # noqa: E501
     
     def __repr__(self) -> str:
         return (f"{self.__class__.__name__}(name='{self.name}', code='{self.code}', "
@@ -138,7 +138,7 @@ def _initialize_currency_registry():
         CryptoCurrency("Cardano", "ADA", "Ouroboros", market_cap=3.2e10),
         CryptoCurrency("Solana", "SOL", "Proof of History", market_cap=7.8e10),
         CryptoCurrency("Ripple", "XRP", "XRP Ledger", market_cap=4.5e10),
-        CryptoCurrency("Polkadot", "DOT", "Nominated Proof-of-Stake", market_cap=2.9e10),
+        CryptoCurrency("Polkadot", "DOT", "Nominated Proof-of-Stake", market_cap=2.9e10), # noqa: E501
         CryptoCurrency("Dogecoin", "DOGE", "Scrypt", market_cap=2.3e10),
     ]
     

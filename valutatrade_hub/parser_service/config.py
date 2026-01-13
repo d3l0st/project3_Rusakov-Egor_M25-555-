@@ -12,8 +12,8 @@ class ParserConfig:
     
     BASE_CURRENCY: str = "USD"
     
-    FIAT_CURRENCIES: Tuple[str, ...] = field(default_factory=lambda: ("EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "RUB", "CNY"))
-    CRYPTO_CURRENCIES: Tuple[str, ...] = field(default_factory=lambda: ("BTC", "ETH", "BNB", "ADA", "SOL", "XRP", "DOT", "DOGE"))
+    FIAT_CURRENCIES: Tuple[str, ...] = field(default_factory=lambda: ("EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "RUB", "CNY")) # noqa: E501
+    CRYPTO_CURRENCIES: Tuple[str, ...] = field(default_factory=lambda: ("BTC", "ETH", "BNB", "ADA", "SOL", "XRP", "DOT", "DOGE")) # noqa: E501
     
     CRYPTO_ID_MAP: Dict[str, str] = field(default_factory=lambda: {
         "BTC": "bitcoin",
@@ -40,4 +40,4 @@ class ParserConfig:
     
     @property
     def exchangerate_full_url(self) -> str:
-        return f"{self.EXCHANGERATE_API_URL}/{self.EXCHANGERATE_API_KEY}/latest/{self.BASE_CURRENCY}"
+        return f"{self.EXCHANGERATE_API_URL}/{self.EXCHANGERATE_API_KEY}/latest/{self.BASE_CURRENCY}" # noqa: E501

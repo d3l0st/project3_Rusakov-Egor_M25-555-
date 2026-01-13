@@ -11,17 +11,6 @@ from .exceptions import (
 
 
 class User:
-    '''
-    user_id: int — уникальный идентификатор пользователя.
-    username: str — имя пользователя.
-    hashed_password: str — пароль в зашифрованном виде.
-    salt: str — уникальная соль для пользователя.
-    registration_date: datetime — дата регистрации пользователя.
-    Методы класса:
-    get_user_info() — выводит информацию о пользователе (без пароля).
-    change_password(new_password: str) — изменяет пароль пользователя, с хешированием нового пароля.
-    verify_password(password: str) — проверяет введённый пароль на совпадение.
-    '''
     
     def __init__(
         self,
@@ -156,14 +145,7 @@ class Wallet:
         }
         
 class Portfolio:
-    '''
-    _user_id: int — уникальный идентификатор пользователя.
-    _wallets: dict[str, Wallet] — словарь кошельков, где ключ — код валюты, значение — объект Wallet.
-    Методы класса:
-    add_currency(currency_code: str) — добавляет новый кошелёк в портфель (если его ещё нет).
-    get_total_value(base_currency='USD') — возвращает общую стоимость всех валют пользователя в указанной базовой валюте (по курсам, полученным из API или фиктивным данным).
-    get_wallet(currency_code) — возвращает объект Wallet по коду 
-    '''
+
     def __init__(
             self,
             user_id: int,

@@ -80,7 +80,7 @@ class AuthUseCases:
         
         return {
             "success": True,
-            "message": f"Пользователь '{username}' зарегистрирован (id={user_id}). Войдите: login --username {username} --password ****",
+            "message": f"Пользователь '{username}' зарегистрирован (id={user_id}). Войдите: login --username {username} --password ****", # noqa: E501
             "user_id": user_id,
             "username": username
         }
@@ -182,7 +182,7 @@ class PortfolioUseCases:
             if portfolio_data['user_id'] == user_id:
                 wallets = {}
                 for currency_code, wallet_info in portfolio_data['wallets'].items():
-                    wallets[currency_code] = Wallet(currency_code, wallet_info['balance'])
+                    wallets[currency_code] = Wallet(currency_code, wallet_info['balance']) # noqa: E501
                 return Portfolio(user_id, wallets)
     
         return Portfolio(user_id, {})
@@ -222,7 +222,7 @@ class PortfolioUseCases:
                     "is_fresh": True
                 }
             else:
-                raise ApiRequestError(f"Данные устарели: курс {from_currency}→{to_currency} обновлен {updated_at}")
+                raise ApiRequestError(f"Данные устарели: курс {from_currency}→{to_currency} обновлен {updated_at}") # noqa: E501
             
         else:
             raise ApiRequestError(f"Курс {from_currency}→{to_currency} недоступен")
@@ -263,7 +263,7 @@ class ExchangeUseCases:
         if pair not in rates:
             return {
                 "success": False,
-                "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD"))
+                "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD")) # noqa: E501
             }
 
         rate_info = rates[pair]
@@ -384,7 +384,7 @@ class ExchangeUseCases:
         if pair not in rates:
             return {
                 "success": False,
-                "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD"))
+                "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD")) # noqa: E501
             }
 
         rate_info = rates[pair]

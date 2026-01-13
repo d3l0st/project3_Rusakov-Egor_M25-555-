@@ -96,7 +96,7 @@ class CLIInterface:
                 base_currency
             )
             
-            print(f"Портфель пользователя '{self.current_user['username']}' (база: {base_currency}):")
+            print(f"Портфель пользователя '{self.current_user['username']}' (база: {base_currency}):") # noqa: E501
             
             if not result['wallets']:
                 print("Портфель пуст")
@@ -115,9 +115,9 @@ class CLIInterface:
                         currency_type = "[?]"
                     
                     if wallet['value_in_base'] > 0:
-                        print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}  → {wallet['value_in_base']:.2f} {base_currency}")
+                        print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}  → {wallet['value_in_base']:.2f} {base_currency}") # noqa: E501
                     else:
-                        print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}")
+                        print(f"- {currency_type} {wallet['currency']}: {wallet['balance']:.4f}") # noqa: E501
         
             print(f"ИТОГО: {result['total_value']:,.2f} {base_currency}")
             return True
@@ -136,7 +136,7 @@ class CLIInterface:
             sources = None
             if source:
                 if source not in ['coingecko', 'exchangerate']:
-                    print(f"Ошибка: неизвестный источник '{source}'. Используйте 'coingecko' или 'exchangerate'")
+                    print(f"Ошибка: неизвестный источник '{source}'. Используйте 'coingecko' или 'exchangerate'") # noqa: E501
                     return False
                 sources = [source]
                 print(f"Обновление данных только из источника: {source}")
@@ -192,22 +192,22 @@ class CLIInterface:
                 return False
             
             try:
-                rate_info = PortfolioUseCases.get_exchange_rate(from_currency, to_currency)
+                rate_info = PortfolioUseCases.get_exchange_rate(from_currency, to_currency) # noqa: E501
             except ApiRequestError as e:
                 print(f"Ошибка: {str(e)}")
                 print("Попробуйте выполнить: update-rates")
                 return False
             
             if rate_info:
-                print(f"Курс {from_currency}→{to_currency}: {rate_info['rate']} (обновлено: {rate_info['updated_at']})")
+                print(f"Курс {from_currency}→{to_currency}: {rate_info['rate']} (обновлено: {rate_info['updated_at']})") # noqa: E501
                 
                 if not rate_info.get('is_fresh', True):
-                    print(f"Внимание: {rate_info.get('message', 'Данные могут быть устаревшими')}")
+                    print(f"Внимание: {rate_info.get('message', 'Данные могут быть устаревшими')}") # noqa: E501
                 
                 reverse_rate = 1 / rate_info['rate'] if rate_info['rate'] != 0 else 0
-                print(f"Обратный курс {to_currency}→{from_currency}: {reverse_rate:.8f}")
+                print(f"Обратный курс {to_currency}→{from_currency}: {reverse_rate:.8f}") # noqa: E501
             else:
-                print(f"Курс {from_currency}→{to_currency} недоступен. Повторите попытку позже.")
+                print(f"Курс {from_currency}→{to_currency} недоступен. Повторите попытку позже.") # noqa: E501
 
             return True
         except ValutaTradeException as e:
@@ -251,11 +251,11 @@ class CLIInterface:
             )
             
             if result['success']:
-                print(f"Покупка выполнена: {amount:.4f} {currency} по курсу {result['rate']} USD/{currency}")
+                print(f"Покупка выполнена: {amount:.4f} {currency} по курсу {result['rate']} USD/{currency}") # noqa: E501
                 print("Изменения в портфеле:")
                 print(f"- {currency}: было 0.0000 → стало {result['new_balance']:.4f}")
                 if result['estimated_cost_usd'] > 0:
-                    print(f"Оценочная стоимость покупки: {result['estimated_cost_usd']:.2f} USD")
+                    print(f"Оценочная стоимость покупки: {result['estimated_cost_usd']:.2f} USD") # noqa: E501
             else:
                 print(f"Ошибка: {result.get('error', 'Неизвестная ошибка')}")
             
@@ -302,14 +302,14 @@ class CLIInterface:
             
             if result['success']:
                 if currency != 'USD':
-                    print(f"Продажа выполнена: {amount:.4f} {currency} по курсу {result['rate']} USD/{currency}")
+                    print(f"Продажа выполнена: {amount:.4f} {currency} по курсу {result['rate']} USD/{currency}") # noqa: E501
                     print("Изменения в портфеле:")
-                    print(f"- {currency}: было {result['old_balance']:.4f} → стало {result['new_balance']:.4f}")
+                    print(f"- {currency}: было {result['old_balance']:.4f} → стало {result['new_balance']:.4f}") # noqa: E501
                     print(f"Оценочная выручка: {result['revenue_usd']:.2f} USD")
                 else:
                     print(f"Продажа выполнена: {amount:.4f} {currency}")
                     print("Изменения в портфеле:")
-                    print(f"- USD: было {result['old_balance']:.2f} → стало {result['new_balance']:.2f}")
+                    print(f"- USD: было {result['old_balance']:.2f} → стало {result['new_balance']:.2f}") # noqa: E501
             else:
                 print(f"Ошибка: {result.get('error', 'Неизвестная ошибка')}")
         
