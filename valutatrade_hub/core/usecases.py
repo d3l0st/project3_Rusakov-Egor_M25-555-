@@ -6,6 +6,7 @@ from .models import Portfolio, User, Wallet
 from .utils import PasswordHasher
 from ..infra.database import db as DatabaseManager
 from ..infra.settings import settings
+from .currencies import FiatCurrency, CryptoCurrency
 from ..decorators import log_buy, log_sell, log_register, log_login, log_get_rate
 from .currencies import get_currency
 from .exceptions import ( 
@@ -264,8 +265,21 @@ class ExchangeUseCases:
                 "success": False,
                 "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD"))
             }
-    
-        rate = rates[pair]['rate']
+
+        rate_info = rates[pair]
+
+        if isinstance(rate_info, dict):
+            rate_value = rate_info.get('rate', 0)
+        else:
+            rate_value = rate_info
+
+        if isinstance(currency_obj, FiatCurrency):
+            rate = 1 / rate_value if rate_value != 0 else 0
+        elif isinstance(currency_obj, CryptoCurrency):
+            rate = rate_value
+        else:
+            rate = rate_value
+
         cost_usd = amount * rate
     
     
@@ -373,7 +387,20 @@ class ExchangeUseCases:
                 "error": str(ApiRequestError(f"Не удалось получить курс для {currency_code}→USD"))
             }
 
-        rate = rates[pair]['rate']
+        rate_info = rates[pair]
+
+        if isinstance(rate_info, dict):
+            rate_value = rate_info.get('rate', 0)
+        else:
+            rate_value = rate_info
+
+        if isinstance(currency_obj, FiatCurrency):
+            rate = 1 / rate_value if rate_value != 0 else 0
+        elif isinstance(currency_obj, CryptoCurrency):
+            rate = rate_value
+        else:
+            rate = rate_value
+
         revenue_usd = amount * rate
 
         if 'USD' not in portfolio._wallets:
